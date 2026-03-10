@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscribe — MyFarmer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: white; border-radius: 16px; padding: 36px 28px; max-width: 440px; width: 100%; border: 1px solid #e0e0d8; text-align: center; }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { font-size: 15px; color: #666; margin-bottom: 28px; line-height: 1.5; }
+    .price { font-size: 40px; font-weight: 700; color: #2d6a2d; margin-bottom: 4px; }
+    .price span { font-size: 18px; font-weight: 400; color: #888; }
+    .note { font-size: 13px; color: #888; margin-bottom: 28px; }
+    .features { text-align: left; margin-bottom: 28px; }
+    .feature { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: #444; border-bottom: 1px solid #f0f0ec; }
+    .feature:last-child { border-bottom: none; }
+    .feature .tick { color: #2d6a2d; font-size: 16px; }
+    .btn { display: block; width: 100%; background: #2d6a2d; color: white; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; margin-bottom: 12px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-back { background: transparent; color: #666; font-size: 14px; padding: 8px; }
+    .status { font-size: 14px; color: #666; margin-top: 16px; min-height: 20px; }
+    .error { color: #c0392b; }
+    .promo { background: #e8f5e8; border: 1px solid #2d6a2d; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #2d6a2d; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="icon">🌾</div>
+    <h1>MyFarmer Subscription</h1>
+    <p class="subtitle">List your farm and products so buyers can discover you.</p>
+
+    <div class="promo">
+      🎉 <strong>Launch offer:</strong> Farms registered before 1st June 2026 list free until 1st June 2026.
+    </div>
+
+    <div class="price">£5<span>/month</span></div>
+    <p class="note">Cancel anytime · No contract · Billed monthly via Stripe</p>
+
+    <div class="features">
+      <div class="feature"><span class="tick">✓</span> Unlimited product listings</div>
+      <div class="feature"><span class="tick">✓</span> Appear in buyer searches</div>
+      <div class="feature"><span class="tick">✓</span> Real-time stock updates</div>
+      <div class="feature"><span class="tick">✓</span> Buyer notifications when stock changes</div>
+      <div class="feature"><span class="tick">✓</span> Cancel anytime from the app</div>
+    </div>
+
+    <button class="btn" id="subscribeBtn" onclick="startCheckout()">Subscribe for £5/month</button>
+    <a href="index.html" class="btn btn-back">← Back to MyFarmer</a>
+
+    <p class="status" id="status"></p>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://ycoesxmrbwtcsoyixqjp.supabase.co";
+
+    // ── Read access token from URL hash (passed from the app) ──
+    // The app opens: subscribe.html#access_token=XXX
+    function getTokenFromHash() {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      return params.get("access_token");
+    }
+
+    async function startCheckout() {
+      const btn = document.getElementById("subscribeBtn");
+      const status = document.getElementById("status");
+
+      const token = getTokenFromHash();
+      if (!token) {
+        status.className = "status error";
+        status.textContent = "No session found. Please open this page from the MyFarmer app.";
+        return;
+      }
+
+      btn.disabled = true;
+      status.className = "status";
+      status.textContent = "Loading secure payment page…";
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-session`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+
+      } catch (err) {
+        btn.disabled = false;
+        status.className = "status error";
+        status.textContent = err.message || "Something went wrong. Please try again.";
+      }
+    }
+  </script>
+
+</body>
+</html>

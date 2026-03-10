@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyFarmer — Local Farm Produce</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f0; color: #1a1a1a; }
+    header { background: #2d6a2d; padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
+    header h1 { color: white; font-size: 22px; }
+    header span { font-size: 28px; }
+    .hero { background: #2d6a2d; padding: 48px 24px 64px; text-align: center; }
+    .hero h2 { color: white; font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .hero p { color: rgba(255,255,255,0.85); font-size: 16px; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+    .cards { display: flex; flex-wrap: wrap; gap: 16px; padding: 32px 24px; max-width: 800px; margin: 0 auto; }
+    .card { background: white; border-radius: 12px; padding: 24px; flex: 1; min-width: 240px; border: 1px solid #e0e0d8; }
+    .card .icon { font-size: 32px; margin-bottom: 12px; }
+    .card h3 { font-size: 17px; margin-bottom: 8px; color: #1a1a1a; }
+    .card p { font-size: 14px; color: #666; line-height: 1.5; }
+    .section { max-width: 800px; margin: 0 auto; padding: 0 24px 40px; }
+    .section h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #1a1a1a; }
+    .download { background: white; border-radius: 12px; padding: 28px; border: 1px solid #e0e0d8; text-align: center; }
+    .download p { font-size: 15px; color: #444; margin-bottom: 20px; }
+    .btn { display: inline-block; background: #2d6a2d; color: white; padding: 14px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none; margin: 6px; }
+    .btn-outline { background: transparent; color: #2d6a2d; border: 2px solid #2d6a2d; }
+    footer { background: #1a1a1a; color: #999; text-align: center; padding: 28px 24px; font-size: 13px; line-height: 2; }
+    footer a { color: #bbb; text-decoration: none; margin: 0 8px; }
+    footer a:hover { color: white; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span>🌾</span>
+    <h1>MyFarmer</h1>
+  </header>
+
+  <div class="hero">
+    <h2>Fresh produce, straight from the farm</h2>
+    <p>MyFarmer connects you with local farmers selling fresh, seasonal produce directly to your door — no middlemen, no supermarkets.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="icon">🥕</div>
+      <h3>Discover local farms</h3>
+      <p>Browse farms near you and see exactly what's available today.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🛒</div>
+      <h3>Build your list</h3>
+      <p>Add products to your shopping list and collect directly from the farm.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🌱</div>
+      <h3>Support British farming</h3>
+      <p>Every purchase goes directly to the farmer — no platform fees for buyers.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Get the app</h2>
+    <div class="download">
+      <p>MyFarmer is available on iOS and Android — free for buyers, always.</p>
+      <a href="#" class="btn">App Store</a>
+      <a href="#" class="btn btn-outline">Google Play</a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>For farmers</h2>
+    <div class="download">
+      <p>List your farm and products on MyFarmer for £5/month. All farms that register before 1st June 2026 list free until 1st June 2026.</p>
+      <a href="subscribe.html" class="btn">Subscribe — £5/month</a>
+      <a href="manage.html" class="btn btn-outline">Manage Subscription</a>
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms & Conditions</a>
+      <a href="mailto:myfarmerapp@gmail.com">Contact</a>
+    </div>
+    <div style="margin-top:8px;">© 2026 MyFarmer. All rights reserved.</div>
+  </footer>
+
+</body>
+</html>
