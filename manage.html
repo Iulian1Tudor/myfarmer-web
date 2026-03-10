@@ -17,6 +17,7 @@
     .status { font-size: 14px; color: #666; margin-top: 16px; min-height: 20px; }
     .error { color: #c0392b; }
     .info { background: #f0f4ff; border: 1px solid #c0cfe8; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; color: #445; line-height: 1.5; text-align: left; }
+    .no-token { background: #fff3cd; border: 1px solid #e0a800; border-radius: 8px; padding: 16px; font-size: 14px; color: #856404; line-height: 1.6; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -26,31 +27,51 @@
     <h1>Manage Subscription</h1>
     <p class="subtitle">Update your payment method, view invoices, or cancel your subscription.</p>
 
-    <div class="info">
-      ℹ️ You'll be taken to the Stripe Billing Portal — a secure page managed by Stripe. MyFarmer never stores your card details.
+    <div id="noTokenWarning" class="no-token" style="display:none;">
+      ⚠️ This page must be opened from the <strong>MyFarmer app</strong>.<br>
+      Go to your app → Settings → Subscription → Manage Subscription.
     </div>
 
-    <button class="btn" id="manageBtn" onclick="openPortal()">Open Billing Portal</button>
-    <a href="index.html" class="btn btn-back">← Back to MyFarmer</a>
+    <div id="mainContent">
+      <div class="info">
+        ℹ️ You'll be taken to the Stripe Billing Portal — a secure page managed by Stripe. MyFarmer never stores your card details.
+      </div>
 
-    <p class="status" id="status"></p>
+      <button class="btn" id="manageBtn" onclick="openPortal()">Open Billing Portal</button>
+      <a href="index.html" class="btn btn-back">← Back to MyFarmer</a>
+
+      <p class="status" id="status"></p>
+    </div>
   </div>
 
   <script>
     const SUPABASE_URL = "https://ycoesxmrbwtcsoyixqjp.supabase.co";
 
-    function getTokenFromHash() {
+    let SESSION_TOKEN = null;
+
+    (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      return params.get("access_token");
-    }
+      const token = params.get("access_token");
+
+      if (token) {
+        sessionStorage.setItem("mf_token", token);
+        history.replaceState(null, "", window.location.pathname);
+      }
+
+      SESSION_TOKEN = sessionStorage.getItem("mf_token");
+
+      if (!SESSION_TOKEN) {
+        document.getElementById("noTokenWarning").style.display = "block";
+        document.getElementById("mainContent").style.display = "none";
+      }
+    })();
 
     async function openPortal() {
       const btn = document.getElementById("manageBtn");
       const status = document.getElementById("status");
 
-      const token = getTokenFromHash();
-      if (!token) {
+      if (!SESSION_TOKEN) {
         status.className = "status error";
         status.textContent = "No session found. Please open this page from the MyFarmer app.";
         return;
@@ -65,16 +86,17 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            "Authorization": `Bearer ${SESSION_TOKEN}`,
           },
         });
 
         const data = await res.json();
 
-        if (data.error) {
-          throw new Error(data.error);
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Request failed");
         }
 
+        sessionStorage.removeItem("mf_token");
         window.location.href = data.url;
 
       } catch (err) {

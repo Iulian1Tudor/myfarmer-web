@@ -24,6 +24,7 @@
     .status { font-size: 14px; color: #666; margin-top: 16px; min-height: 20px; }
     .error { color: #c0392b; }
     .promo { background: #e8f5e8; border: 1px solid #2d6a2d; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #2d6a2d; line-height: 1.5; }
+    .no-token { background: #fff3cd; border: 1px solid #e0a800; border-radius: 8px; padding: 16px; font-size: 14px; color: #856404; line-height: 1.6; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -33,44 +34,68 @@
     <h1>MyFarmer Subscription</h1>
     <p class="subtitle">List your farm and products so buyers can discover you.</p>
 
-    <div class="promo">
-      🎉 <strong>Launch offer:</strong> Farms registered before 1st June 2026 list free until 1st June 2026.
+    <div id="noTokenWarning" class="no-token" style="display:none;">
+      ⚠️ This page must be opened from the <strong>MyFarmer app</strong>.<br>
+      Go to your app → Settings → Subscription → Subscribe.
     </div>
 
-    <div class="price">£5<span>/month</span></div>
-    <p class="note">Cancel anytime · No contract · Billed monthly via Stripe</p>
+    <div id="mainContent">
+      <div class="promo">
+        🎉 <strong>Launch offer:</strong> Farms registered before 1st June 2026 list free until 1st June 2026.
+      </div>
 
-    <div class="features">
-      <div class="feature"><span class="tick">✓</span> Unlimited product listings</div>
-      <div class="feature"><span class="tick">✓</span> Appear in buyer searches</div>
-      <div class="feature"><span class="tick">✓</span> Real-time stock updates</div>
-      <div class="feature"><span class="tick">✓</span> Buyer notifications when stock changes</div>
-      <div class="feature"><span class="tick">✓</span> Cancel anytime from the app</div>
+      <div class="price">£5<span>/month</span></div>
+      <p class="note">Cancel anytime · No contract · Billed monthly via Stripe</p>
+
+      <div class="features">
+        <div class="feature"><span class="tick">✓</span> Unlimited product listings</div>
+        <div class="feature"><span class="tick">✓</span> Appear in buyer searches</div>
+        <div class="feature"><span class="tick">✓</span> Real-time stock updates</div>
+        <div class="feature"><span class="tick">✓</span> Buyer notifications when stock changes</div>
+        <div class="feature"><span class="tick">✓</span> Cancel anytime from this portal</div>
+      </div>
+
+      <button class="btn" id="subscribeBtn" onclick="startCheckout()">Subscribe for £5/month</button>
+      <a href="index.html" class="btn btn-back">← Back to MyFarmer</a>
+
+      <p class="status" id="status"></p>
     </div>
-
-    <button class="btn" id="subscribeBtn" onclick="startCheckout()">Subscribe for £5/month</button>
-    <a href="index.html" class="btn btn-back">← Back to MyFarmer</a>
-
-    <p class="status" id="status"></p>
   </div>
 
   <script>
     const SUPABASE_URL = "https://ycoesxmrbwtcsoyixqjp.supabase.co";
 
-    // ── Read access token from URL hash (passed from the app) ──
-    // The app opens: subscribe.html#access_token=XXX
-    function getTokenFromHash() {
+    // ── Read access token from URL hash (set by the app), then clear it from the bar ──
+    // Hash fragment is never sent to the server, so GitHub Pages never logs it.
+    // We move it to sessionStorage so it survives within this tab only.
+    let SESSION_TOKEN = null;
+
+    (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      return params.get("access_token");
-    }
+      const token = params.get("access_token");
+
+      if (token) {
+        // Store in sessionStorage (tab-scoped, cleared when tab closes)
+        sessionStorage.setItem("mf_token", token);
+        // Remove token from URL bar — looks cleaner and prevents accidental sharing
+        history.replaceState(null, "", window.location.pathname);
+      }
+
+      SESSION_TOKEN = sessionStorage.getItem("mf_token");
+
+      if (!SESSION_TOKEN) {
+        // Opened directly in browser, not from the app
+        document.getElementById("noTokenWarning").style.display = "block";
+        document.getElementById("mainContent").style.display = "none";
+      }
+    })();
 
     async function startCheckout() {
       const btn = document.getElementById("subscribeBtn");
       const status = document.getElementById("status");
 
-      const token = getTokenFromHash();
-      if (!token) {
+      if (!SESSION_TOKEN) {
         status.className = "status error";
         status.textContent = "No session found. Please open this page from the MyFarmer app.";
         return;
@@ -85,17 +110,20 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            "Authorization": `Bearer ${SESSION_TOKEN}`,
           },
         });
 
         const data = await res.json();
 
-        if (data.error) {
-          throw new Error(data.error);
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "Request failed");
         }
 
-        // Redirect to Stripe Checkout
+        // Clear the token before leaving — Stripe will handle everything from here
+        sessionStorage.removeItem("mf_token");
+
+        // Redirect to Stripe Checkout (hosted by Stripe, HTTPS, PCI compliant)
         window.location.href = data.url;
 
       } catch (err) {
