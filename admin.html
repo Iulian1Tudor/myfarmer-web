@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyFarmer Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1a1a1a;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Login screen ── */
+    #login-screen {
+      background: #2a2a2a;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      border: 1px solid #444;
+    }
+    #login-screen h1 { font-size: 20px; margin-bottom: 6px; color: #fff; }
+    #login-screen p { font-size: 13px; color: #888; margin-bottom: 28px; }
+    #secret-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #555;
+      background: #333;
+      color: #fff;
+      font-size: 15px;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+    #login-btn {
+      width: 100%;
+      background: #2d6a2d;
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #login-btn:hover { background: #245424; }
+    #login-error { color: #e74c3c; font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+    /* ── Review screen ── */
+    #review-screen {
+      display: none;
+      width: 100%;
+      max-width: 640px;
+      padding: 16px;
+    }
+
+    /* ── Header bar ── */
+    #review-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+    #queue-count {
+      font-size: 14px;
+      color: #aaa;
+      white-space: nowrap;
+    }
+    #queue-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      flex: 1;
+      text-align: center;
+    }
+    #back-btn {
+      background: #333;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    #back-btn:hover:not(:disabled) { background: #444; }
+    #back-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ── Photo area ── */
+    #photo-area {
+      background: #2a2a2a;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      max-height: 420px;
+      border: 1px solid #444;
+    }
+    #photo-img {
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      display: none;
+    }
+    #no-photo-text {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* ── Item info ── */
+    #item-info {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #444;
+    }
+    #item-type-badge {
+      display: inline-block;
+      background: #444;
+      color: #ccc;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    #item-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    #item-description {
+      font-size: 14px;
+      color: #bbb;
+      line-height: 1.5;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+    #item-farm-id {
+      font-size: 11px;
+      color: #555;
+      font-family: monospace;
+    }
+
+    /* ── Action buttons ── */
+    #action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .action-btn:hover { opacity: 0.85; }
+    .action-btn:active { opacity: 0.7; }
+    #approve-btn  { background: #2d6a2d; color: #fff; }
+    #reject-btn   { background: #c0392b; color: #fff; }
+    #ban-btn      { background: #555;    color: #fff; }
+
+    /* ── Reject reasons panel ── */
+    #reject-panel {
+      display: none;
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid #c0392b;
+    }
+    #reject-panel h3 { font-size: 14px; color: #ccc; margin-bottom: 12px; }
+    .reason-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      font-size: 14px;
+      color: #ddd;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+    }
+    .reason-label:last-of-type { border-bottom: none; }
+    .reason-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #c0392b;
+      flex-shrink: 0;
+    }
+    #reject-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    #reject-confirm-btn {
+      flex: 1;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #reject-confirm-btn:hover { background: #a93226; }
+    #reject-cancel-btn {
+      background: #333;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #reject-cancel-btn:hover { background: #444; }
+
+    /* ── Keyboard hint ── */
+    #keyboard-hint {
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 16px;
+    }
+
+    /* ── Status / error bar ── */
+    #action-status {
+      text-align: center;
+      font-size: 13px;
+      min-height: 20px;
+      margin-bottom: 8px;
+    }
+    .status-ok    { color: #2ecc71; }
+    .status-error { color: #e74c3c; }
+    .status-info  { color: #aaa; }
+
+    /* ── Empty state ── */
+    #empty-state {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+    }
+    #empty-state h2 { font-size: 24px; margin-bottom: 10px; }
+    #empty-state p  { color: #888; font-size: 14px; margin-bottom: 24px; }
+    #refresh-btn {
+      background: #333;
+      color: #ccc;
+      border: 1px solid #555;
+      padding: 11px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #refresh-btn:hover { background: #444; }
+
+    /* ── Loading indicator ── */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── LOGIN SCREEN ─────────────────────────────────────────── -->
+  <div id="login-screen">
+    <h1>MyFarmer Admin</h1>
+    <p>Enter your moderation secret to access the queue.</p>
+    <input
+      type="password"
+      id="secret-input"
+      placeholder="Admin secret"
+      autocomplete="current-password"
+    />
+    <button id="login-btn">Enter</button>
+    <p id="login-error" role="alert"></p>
+  </div>
+
+  <!-- ── REVIEW SCREEN ────────────────────────────────────────── -->
+  <div id="review-screen">
+
+    <div id="review-header">
+      <span id="queue-count"></span>
+      <span id="queue-label">Photo Review</span>
+      <button id="back-btn" disabled>← Undo</button>
+    </div>
+
+    <div id="loading">Loading queue…</div>
+
+    <!-- Photo -->
+    <div id="photo-area">
+      <img id="photo-img" alt="Submission photo" />
+      <span id="no-photo-text">No photo submitted</span>
+    </div>
+
+    <!-- Item metadata -->
+    <div id="item-info">
+      <span id="item-type-badge"></span>
+      <h2 id="item-name"></h2>
+      <p id="item-description"></p>
+      <p id="item-farm-id"></p>
+    </div>
+
+    <!-- Status line -->
+    <p id="action-status"></p>
+
+    <!-- Main action buttons -->
+    <div id="action-buttons">
+      <button id="approve-btn"  class="action-btn">✓ Approve</button>
+      <button id="reject-btn"   class="action-btn">✗ Reject</button>
+      <button id="ban-btn"      class="action-btn">⛔ Ban</button>
+    </div>
+
+    <!-- Reject reasons panel (hidden until Reject clicked) -->
+    <div id="reject-panel" role="region" aria-label="Rejection reasons">
+      <h3>Select rejection reason(s):</h3>
+      <label class="reason-label">
+        <input type="checkbox" name="reason" value="Low quality photo" />
+        Low quality photo
+      </label>
+      <label class="reason-label">
+        <input type="checkbox" name="reason" value="Photo doesn't match description" />
+        Photo doesn't match description
+      </label>
+      <label class="reason-label">
+        <input type="checkbox" name="reason" value="Inappropriate content" />
+        Inappropriate content
+      </label>
+      <div id="reject-actions">
+        <button id="reject-confirm-btn">Confirm Rejection</button>
+        <button id="reject-cancel-btn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Keyboard shortcut hint -->
+    <p id="keyboard-hint">→ Approve &nbsp;|&nbsp; ← Reject &nbsp;|&nbsp; Backspace Undo</p>
+
+    <!-- Empty state -->
+    <div id="empty-state">
+      <h2>All caught up! 🎉</h2>
+      <p>No items pending review.</p>
+      <button id="refresh-btn">Refresh queue</button>
+    </div>
+
+  </div>
+
+  <script>
+    // ── CONFIG ───────────────────────────────────────────────────────────────
+    // Update PROJECT_ID if the Supabase project changes.
+    const PROJECT_ID     = "ycoesxmrbwtcsoyixqjp";
+    const FUNCTION_URL   = `https://${PROJECT_ID}.supabase.co/functions/v1/moderate-item`;
+    // Only photos from our own Supabase Storage are displayed.
+    // Any other URL is replaced with a "no photo" placeholder.
+    const STORAGE_HOST   = `${PROJECT_ID}.supabase.co`;
+    const STORAGE_PREFIX = `/storage/v1/object/public/`;
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let secret       = "";           // admin secret — kept only in memory
+    let queue        = [];           // pending items loaded from edge function
+    let currentIndex = 0;            // which item we're viewing
+    let history      = [];           // undo stack: [{index, item, action}], max 5
+    let busy         = false;        // lock while an API call is in flight
+
+    // ── Security: validate photo URLs ────────────────────────────────────────
+    // Only render images from our own Supabase Storage bucket.
+    // Prevents SSRF via admin browser and protects against URL-based attacks.
+    function isSafePhotoUrl(url) {
+      if (!url || typeof url !== "string") return false;
+      try {
+        const parsed = new URL(url);
+        return (
+          parsed.protocol === "https:" &&
+          parsed.hostname === STORAGE_HOST &&
+          parsed.pathname.startsWith(STORAGE_PREFIX)
+        );
+      } catch {
+        return false;
+      }
+    }
+
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const $ = (id) => document.getElementById(id);
+
+    // ── API helper ────────────────────────────────────────────────────────────
+    async function apiFetch(method, body) {
+      const opts = {
+        method,
+        headers: { "Authorization": `Bearer ${secret}` },
+      };
+      if (body !== undefined) {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(body);
+      }
+      return fetch(FUNCTION_URL, opts);
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+    $("login-btn").addEventListener("click", doLogin);
+    $("secret-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
+    });
+
+    async function doLogin() {
+      const input = $("secret-input").value.trim();
+      if (!input) return;
+      $("login-btn").disabled = true;
+      $("login-error").textContent = "";
+      secret = input;
+      $("secret-input").value = ""; // clear field immediately — secret lives only in memory
+
+      const ok = await loadQueue();
+      if (ok) {
+        $("login-screen").style.display = "none";
+        $("review-screen").style.display = "block";
+        renderCurrentItem();
+      } else {
+        $("login-error").textContent = "Invalid secret or connection error.";
+        secret = "";
+        $("login-btn").disabled = false;
+      }
+    }
+
+    // ── Load queue ────────────────────────────────────────────────────────────
+    async function loadQueue() {
+      $("loading").style.display = "block";
+      try {
+        const res = await apiFetch("GET");
+        if (res.status === 401) return false;
+        if (!res.ok) return false;
+        const data = await res.json();
+        if (!Array.isArray(data)) return false;
+        queue        = data;
+        currentIndex = 0;
+        history      = [];
+        return true;
+      } catch {
+        return false;
+      } finally {
+        $("loading").style.display = "none";
+      }
+    }
+
+    // ── Render current item ────────────────────────────────────────────────────
+    function renderCurrentItem() {
+      const atEnd = currentIndex >= queue.length;
+
+      // Toggle visibility of sections
+      $("photo-area").style.display    = atEnd ? "none" : "flex";
+      $("item-info").style.display     = atEnd ? "none" : "block";
+      $("action-buttons").style.display = atEnd ? "none" : "flex";
+      $("reject-panel").style.display  = "none";
+      $("keyboard-hint").style.display = atEnd ? "none" : "block";
+      $("empty-state").style.display   = atEnd ? "block" : "none";
+      $("action-status").textContent   = "";
+
+      if (atEnd) return;
+
+      const item = queue[currentIndex];
+
+      // ── Queue counter
+      $("queue-count").textContent = `${currentIndex + 1} / ${queue.length}`;
+
+      // ── Back button — disabled when history is empty or after a ban
+      $("back-btn").disabled = history.length === 0;
+
+      // ── Photo — only render if URL is from our Supabase Storage
+      const img     = $("photo-img");
+      const noPhoto = $("no-photo-text");
+      if (isSafePhotoUrl(item.photo_url)) {
+        img.src          = item.photo_url;
+        img.style.display = "block";
+        noPhoto.style.display = "none";
+      } else {
+        img.src          = "";
+        img.style.display = "none";
+        noPhoto.style.display = "block";
+      }
+
+      // ── Text — always textContent, never innerHTML (prevents XSS)
+      $("item-type-badge").textContent = (item.type || "").toUpperCase();
+      $("item-name").textContent       = item.name || "(no name)";
+      $("item-description").textContent = item.description || "";
+      $("item-farm-id").textContent    = `Farm ID: ${item.farm_id || "—"}`;
+    }
+
+    // ── Status helpers ────────────────────────────────────────────────────────
+    function setStatus(msg, cls) {
+      const el = $("action-status");
+      el.textContent = msg;
+      el.className   = cls;
+      if (cls !== "status-error") {
+        setTimeout(() => { el.textContent = ""; el.className = ""; }, 2500);
+      }
+    }
+
+    // ── Approve ────────────────────────────────────────────────────────────────
+    $("approve-btn").addEventListener("click", doApprove);
+
+    async function doApprove() {
+      if (busy || currentIndex >= queue.length) return;
+      const item = queue[currentIndex];
+      busy = true;
+      setStatus("Approving…", "status-info");
+      try {
+        const res = await apiFetch("POST", { action: "approve", queueId: item.id });
+        if (!res.ok) { setStatus("Approve failed — try again.", "status-error"); return; }
+        pushHistory(item, "approve");
+        currentIndex++;
+        renderCurrentItem();
+      } catch {
+        setStatus("Network error — try again.", "status-error");
+      } finally {
+        busy = false;
+      }
+    }
+
+    // ── Reject ────────────────────────────────────────────────────────────────
+    $("reject-btn").addEventListener("click", () => {
+      if (busy || currentIndex >= queue.length) return;
+      $("action-buttons").style.display = "none";
+      $("reject-panel").style.display   = "block";
+      // Clear previous selections
+      document.querySelectorAll("input[name='reason']").forEach((cb) => { cb.checked = false; });
+    });
+
+    $("reject-cancel-btn").addEventListener("click", () => {
+      $("reject-panel").style.display   = "none";
+      $("action-buttons").style.display = "flex";
+    });
+
+    $("reject-confirm-btn").addEventListener("click", doRejectConfirm);
+
+    async function doRejectConfirm() {
+      const reasons = Array.from(document.querySelectorAll("input[name='reason']:checked"))
+        .map((cb) => cb.value);
+      if (reasons.length === 0) {
+        setStatus("Select at least one reason.", "status-error");
+        return;
+      }
+      if (busy || currentIndex >= queue.length) return;
+      const item   = queue[currentIndex];
+      const reason = reasons.join(", ");
+      busy = true;
+      setStatus("Rejecting…", "status-info");
+      try {
+        const res = await apiFetch("POST", { action: "reject", queueId: item.id, reason });
+        if (!res.ok) { setStatus("Reject failed — try again.", "status-error"); return; }
+        pushHistory(item, "reject");
+        currentIndex++;
+        $("reject-panel").style.display = "none";
+        renderCurrentItem();
+      } catch {
+        setStatus("Network error — try again.", "status-error");
+      } finally {
+        busy = false;
+      }
+    }
+
+    // ── Ban ────────────────────────────────────────────────────────────────────
+    $("ban-btn").addEventListener("click", doBan);
+
+    async function doBan() {
+      if (busy || currentIndex >= queue.length) return;
+      const item = queue[currentIndex];
+      // Require explicit confirmation — ban suspends the entire farm account
+      const confirmed = confirm(
+        `Ban farmer for "${item.name}"?\n\nThis will suspend their entire farm account and hide all their products. This action cannot be undone from this tool.`
+      );
+      if (!confirmed) return;
+      busy = true;
+      setStatus("Banning…", "status-info");
+      try {
+        const res = await apiFetch("POST", { action: "ban", queueId: item.id });
+        if (!res.ok) { setStatus("Ban failed — try again.", "status-error"); return; }
+        // Clear undo history after ban — it's irreversible
+        history = [];
+        currentIndex++;
+        setStatus("Account banned.", "status-ok");
+        renderCurrentItem();
+      } catch {
+        setStatus("Network error — try again.", "status-error");
+      } finally {
+        busy = false;
+      }
+    }
+
+    // ── Undo (back up to 5 decisions) ─────────────────────────────────────────
+    $("back-btn").addEventListener("click", doUndo);
+
+    async function doUndo() {
+      if (busy || history.length === 0) return;
+      const prev = history[history.length - 1]; // peek
+      busy = true;
+      setStatus("Undoing…", "status-info");
+      try {
+        const res = await apiFetch("POST", {
+          action:         "requeue",
+          queueId:        prev.item.id,
+          previousAction: prev.action,
+        });
+        if (!res.ok) {
+          // Non-fatal: the server couldn't requeue, but we still navigate back
+          // so the admin can at least re-review. Log a warning.
+          setStatus("Warning: server requeue failed — reviewing locally.", "status-error");
+        }
+        history.pop(); // commit pop only on success (or best-effort)
+        currentIndex = prev.index;
+        renderCurrentItem();
+      } catch {
+        setStatus("Network error — try again.", "status-error");
+      } finally {
+        busy = false;
+      }
+    }
+
+    // ── Refresh ───────────────────────────────────────────────────────────────
+    $("refresh-btn").addEventListener("click", async () => {
+      const ok = await loadQueue();
+      if (ok) renderCurrentItem();
+      else setStatus("Could not reload queue.", "status-error");
+    });
+
+    // ── Keyboard shortcuts ────────────────────────────────────────────────────
+    // → Approve | ← Reject (shows panel) | Backspace Undo
+    document.addEventListener("keydown", (e) => {
+      // Ignore when typing in an input or when reject panel is open
+      if (document.activeElement.tagName === "INPUT") return;
+      if ($("reject-panel").style.display !== "none")  return;
+      if ($("review-screen").style.display === "none") return;
+
+      if (e.key === "ArrowRight") { e.preventDefault(); doApprove(); }
+      if (e.key === "ArrowLeft")  { e.preventDefault(); $("reject-btn").click(); }
+      if (e.key === "Backspace")  { e.preventDefault(); doUndo(); }
+    });
+
+    // ── History helpers ────────────────────────────────────────────────────────
+    function pushHistory(item, action) {
+      history.push({ index: currentIndex, item, action });
+      if (history.length > 5) history.shift(); // keep max 5
+    }
+  </script>
+
+</body>
+</html>
