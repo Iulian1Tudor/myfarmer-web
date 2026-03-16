@@ -368,6 +368,9 @@
   </div>
 
   <script>
+  // IIFE — wraps all state in a closure so variables like `secret` are NOT
+  // accessible as window properties via DevTools console inspection.
+  (function () {
     // ── CONFIG ───────────────────────────────────────────────────────────────
     // Update PROJECT_ID if the Supabase project changes.
     const PROJECT_ID     = "ycoesxmrbwtcsoyixqjp";
@@ -662,6 +665,8 @@
       history.push({ index: currentIndex, item, action });
       if (history.length > 5) history.shift(); // keep max 5
     }
+
+  })(); // end IIFE
   </script>
 
 </body>
