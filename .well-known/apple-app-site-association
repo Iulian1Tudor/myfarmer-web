@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["YOUR_TEAM_ID.com.myfarmer.app"],
+        "components": [
+          { "/": "/auth/*",        "comment": "Email confirmation and password reset links" },
+          { "/": "/set-password*", "comment": "Password reset deep link" },
+          { "/": "/*",             "comment": "All other app paths" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["YOUR_TEAM_ID.com.myfarmer.app"]
+  }
+}
