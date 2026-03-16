@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /subscribe.html
+Disallow: /manage.html
+Disallow: /subscription-success.html
+
+User-agent: *
+Allow: /
+Allow: /privacy.html
+Allow: /terms.html
