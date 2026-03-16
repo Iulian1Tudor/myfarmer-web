@@ -49,14 +49,19 @@
 
     let SESSION_TOKEN = null;
 
+    function isValidJWTFormat(token) {
+      return typeof token === "string" && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
+    }
+
     (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const token = params.get("access_token");
 
-      if (token) {
+      history.replaceState(null, "", window.location.pathname);
+
+      if (token && isValidJWTFormat(token)) {
         sessionStorage.setItem("mf_token", token);
-        history.replaceState(null, "", window.location.pathname);
       }
 
       SESSION_TOKEN = sessionStorage.getItem("mf_token");
@@ -90,19 +95,26 @@
           },
         });
 
-        const data = await res.json();
+        sessionStorage.removeItem("mf_token");
+        SESSION_TOKEN = null;
 
-        if (!res.ok || data.error) {
-          throw new Error(data.error || "Request failed");
+        if (!res.ok) {
+          throw new Error("request_failed");
         }
 
-        sessionStorage.removeItem("mf_token");
+        const data = await res.json();
+
+        // Validate the returned URL is a Stripe Billing Portal URL before redirecting
+        if (!data.url || !data.url.startsWith("https://billing.stripe.com/")) {
+          throw new Error("invalid_url");
+        }
+
         window.location.href = data.url;
 
-      } catch (err) {
+      } catch {
         btn.disabled = false;
         status.className = "status error";
-        status.textContent = err.message || "Something went wrong. Please try again.";
+        status.textContent = "Something went wrong. Please return to the app and try again.";
       }
     }
   </script>

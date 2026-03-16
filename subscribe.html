@@ -41,7 +41,7 @@
 
     <div id="mainContent">
       <div class="promo">
-        🎉 <strong>Launch offer:</strong> Farms registered before 1st June 2026 list free until 1st June 2026.
+        🎉 <strong>Launch offer:</strong> Farms registered before 1st July 2026 list free until 1st July 2026.
       </div>
 
       <div class="price">£5<span>/month</span></div>
@@ -70,22 +70,29 @@
     // We move it to sessionStorage so it survives within this tab only.
     let SESSION_TOKEN = null;
 
+    // ── JWT format check: three base64url segments separated by dots ──
+    // Prevents a crafted URL from passing a non-token value into the Authorization header.
+    // Does NOT verify the signature — Supabase does that server-side.
+    function isValidJWTFormat(token) {
+      return typeof token === "string" && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
+    }
+
     (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const token = params.get("access_token");
 
-      if (token) {
-        // Store in sessionStorage (tab-scoped, cleared when tab closes)
+      // Always clear the hash immediately — token must not sit in the URL bar
+      history.replaceState(null, "", window.location.pathname);
+
+      if (token && isValidJWTFormat(token)) {
+        // sessionStorage: tab-scoped, never persisted to disk, cleared when tab closes
         sessionStorage.setItem("mf_token", token);
-        // Remove token from URL bar — looks cleaner and prevents accidental sharing
-        history.replaceState(null, "", window.location.pathname);
       }
 
       SESSION_TOKEN = sessionStorage.getItem("mf_token");
 
       if (!SESSION_TOKEN) {
-        // Opened directly in browser, not from the app
         document.getElementById("noTokenWarning").style.display = "block";
         document.getElementById("mainContent").style.display = "none";
       }
@@ -114,22 +121,28 @@
           },
         });
 
-        const data = await res.json();
+        // Clear the token regardless of outcome — do not retry with stale token
+        sessionStorage.removeItem("mf_token");
+        SESSION_TOKEN = null;
 
-        if (!res.ok || data.error) {
-          throw new Error(data.error || "Request failed");
+        if (!res.ok) {
+          throw new Error("request_failed");
         }
 
-        // Clear the token before leaving — Stripe will handle everything from here
-        sessionStorage.removeItem("mf_token");
+        const data = await res.json();
+
+        // Validate the returned URL is a Stripe Checkout URL before redirecting
+        if (!data.url || !data.url.startsWith("https://checkout.stripe.com/")) {
+          throw new Error("invalid_url");
+        }
 
         // Redirect to Stripe Checkout (hosted by Stripe, HTTPS, PCI compliant)
         window.location.href = data.url;
 
-      } catch (err) {
+      } catch {
         btn.disabled = false;
         status.className = "status error";
-        status.textContent = err.message || "Something went wrong. Please try again.";
+        status.textContent = "Something went wrong. Please return to the app and try again.";
       }
     }
   </script>
