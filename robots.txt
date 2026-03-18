@@ -2,7 +2,6 @@ User-agent: *
 Disallow: /subscribe.html
 Disallow: /manage.html
 Disallow: /subscription-success.html
-Disallow: /admin.html
 
 User-agent: *
 Allow: /

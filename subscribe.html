@@ -77,6 +77,16 @@
       return typeof token === "string" && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
     }
 
+    // ── Stripe URL validation: parse and check exact hostname ──
+    // startsWith() is bypassed by https://checkout.stripe.com.attacker.com/ —
+    // using new URL() + hostname check is the correct fix.
+    function isStripeCheckoutUrl(url) {
+      try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "checkout.stripe.com";
+      } catch { return false; }
+    }
+
     (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
@@ -131,8 +141,10 @@
 
         const data = await res.json();
 
-        // Validate the returned URL is a Stripe Checkout URL before redirecting
-        if (!data.url || !data.url.startsWith("https://checkout.stripe.com/")) {
+        // Validate the returned URL is a genuine Stripe Checkout URL.
+        // startsWith() was bypassed by https://checkout.stripe.com.attacker.com/ —
+        // parse the URL and check the exact hostname instead.
+        if (!isStripeCheckoutUrl(data.url)) {
           throw new Error("invalid_url");
         }
 

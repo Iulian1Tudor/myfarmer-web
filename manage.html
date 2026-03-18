@@ -53,6 +53,14 @@
       return typeof token === "string" && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(token);
     }
 
+    // ── Stripe URL validation: parse and check exact hostname ──
+    function isStripeBillingUrl(url) {
+      try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" && parsed.hostname === "billing.stripe.com";
+      } catch { return false; }
+    }
+
     (function init() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
@@ -104,8 +112,10 @@
 
         const data = await res.json();
 
-        // Validate the returned URL is a Stripe Billing Portal URL before redirecting
-        if (!data.url || !data.url.startsWith("https://billing.stripe.com/")) {
+        // Validate the returned URL is a genuine Stripe Billing Portal URL.
+        // startsWith() was bypassed by https://billing.stripe.com.attacker.com/ —
+        // parse the URL and check the exact hostname instead.
+        if (!isStripeBillingUrl(data.url)) {
           throw new Error("invalid_url");
         }
 
