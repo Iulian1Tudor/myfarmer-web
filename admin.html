@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co; img-src 'self' https://ycoesxmrbwtcsoyixqjp.supabase.co; frame-ancestors 'none';" />
   <title>MyFarmer Admin</title>
   <meta name="robots" content="noindex, nofollow" />
   <style>
@@ -480,7 +481,10 @@
       $("empty-state").style.display   = atEnd ? "block" : "none";
       $("action-status").textContent   = "";
 
-      if (atEnd) return;
+      if (atEnd) {
+        $("back-btn").disabled = history.length === 0;
+        return;
+      }
 
       const item = queue[currentIndex];
 
