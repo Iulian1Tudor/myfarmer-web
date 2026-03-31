@@ -63,11 +63,11 @@
     }
 
     (function init() {
-      const hash = window.location.hash.substring(1);
+      const hash = globalThis.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const token = params.get("access_token");
 
-      history.replaceState(null, "", window.location.pathname);
+      history.replaceState(null, "", globalThis.location.pathname);
 
       if (token && isValidJWTFormat(token)) {
         sessionStorage.setItem("mf_token", token);
@@ -120,7 +120,7 @@
           throw new Error("invalid_url");
         }
 
-        window.location.href = data.url;
+        globalThis.location.href = data.url;
 
       } catch {
         btn.disabled = false;

@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co; img-src 'self' https://ycoesxmrbwtcsoyixqjp.supabase.co; frame-ancestors 'none';" />
+  <!-- CSP via meta tag. Note: frame-ancestors is NOT supported in meta CSP (spec §6.6.3)
+       and is silently ignored by all browsers — it must be sent as an HTTP response header.
+       GitHub Pages does not support custom headers, so frame-ancestors cannot be enforced here.
+       The admin secret requirement makes clickjacking low-risk regardless. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co; img-src 'self' https://ycoesxmrbwtcsoyixqjp.supabase.co;" />
   <title>MyFarmer Admin</title>
   <meta name="robots" content="noindex, nofollow" />
   <style>
@@ -313,14 +317,14 @@
 
     <!-- Photo -->
     <div id="photo-area">
-      <img id="photo-img" alt="Submission photo" />
+      <img id="photo-img" alt="Submission" />
       <span id="no-photo-text">No photo submitted</span>
     </div>
 
     <!-- Item metadata -->
     <div id="item-info">
       <span id="item-type-badge"></span>
-      <h2 id="item-name"></h2>
+      <h2 id="item-name" aria-label="Item name"></h2>
       <p id="item-description"></p>
       <p id="item-farm-id"></p>
     </div>
@@ -336,7 +340,7 @@
     </div>
 
     <!-- Reject reasons panel (hidden until Reject clicked) -->
-    <div id="reject-panel" role="region" aria-label="Rejection reasons">
+    <section id="reject-panel" aria-label="Rejection reasons">
       <h3>Select rejection reason(s):</h3>
       <label class="reason-label">
         <input type="checkbox" name="reason" value="Low quality photo" />
@@ -354,7 +358,7 @@
         <button id="reject-confirm-btn">Confirm Rejection</button>
         <button id="reject-cancel-btn">Cancel</button>
       </div>
-    </div>
+    </section>
 
     <!-- Keyboard shortcut hint -->
     <p id="keyboard-hint">→ Approve &nbsp;|&nbsp; ← Reject &nbsp;|&nbsp; Backspace Undo</p>

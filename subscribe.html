@@ -89,12 +89,12 @@
     }
 
     (function init() {
-      const hash = window.location.hash.substring(1);
+      const hash = globalThis.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const token = params.get("access_token");
 
       // Always clear the hash immediately — token must not sit in the URL bar
-      history.replaceState(null, "", window.location.pathname);
+      history.replaceState(null, "", globalThis.location.pathname);
 
       if (token && isValidJWTFormat(token)) {
         // sessionStorage: tab-scoped, never persisted to disk, cleared when tab closes
@@ -150,7 +150,7 @@
         }
 
         // Redirect to Stripe Checkout (hosted by Stripe, HTTPS, PCI compliant)
-        window.location.href = data.url;
+        globalThis.location.href = data.url;
 
       } catch {
         btn.disabled = false;
