@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appIDs": ["YOUR_TEAM_ID.com.myfarmer.app"],
+        "appIDs": ["YOUR_TEAM_ID.com.farmfind.app"],
         "components": [
           { "/": "/auth/*",        "comment": "Email confirmation and password reset links" },
           { "/": "/set-password*", "comment": "Password reset deep link" },
@@ -13,6 +13,6 @@
     ]
   },
   "webcredentials": {
-    "apps": ["YOUR_TEAM_ID.com.myfarmer.app"]
+    "apps": ["YOUR_TEAM_ID.com.farmfind.app"]
   }
 }
